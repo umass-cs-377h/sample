@@ -1,0 +1,6 @@
+tests:
+  -
+    name: Test1
+    file: sample_tests
+    class: SampleTest
+    points: 5

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+log(){
+  echo $1
+  curl -s -H "content-type:text/plain" -d "$1" http://logs-01.loggly.com/inputs/1a25eb13-66d6-4f97-934c-326651efde07/tag/http/ >/dev/null
+}
+
+log_file(){
+  cat $1
+  curl -s -X POST -T "$1" https://logs-01.loggly.com/bulk/1a25eb13-66d6-4f97-934c-326651efde07/tag/file_upload >/dev/null
+}
+
+log "Remove src"
+cd /autograder/source
+rm -rf src
+
+# Just in case, only should be stale in testing environments
+rm -rf /autograder/results/results_parts
+
+log "Looking for src dir"
+if cp -r `find /autograder/submission -maxdepth 2 -name 'src'` .; then
+    echo "Found src dir in submission"
+else
+    echo "Couldn't find src directory in submission" |./build_output.py >/autograder/results/results.json
+    exit
+fi
+
+log "Build project"
+if make >/autograder/results/build.log 2>&1 ; then
+    log "Build succeeded"
+else
+    log "Build failed"
+    cat /autograder/results/build.log |./build_output.py >/autograder/results/results.json
+    exit
+fi
+
+log "Run test phase"
+./grader.py /autograder/source/test_list.yml
+
+log_file /autograder/results/results.json
