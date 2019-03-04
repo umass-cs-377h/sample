@@ -14,3 +14,17 @@ for fi in `ls | grep -E '^p[0-9]+$'`; do
   mv $fi-gradescope.zip ../../graders/
   cd ../..
 done
+
+rm -rf students
+mkdir students
+
+ echo "Building student distributions..."
+# Build the student code distributions for each project
+for fi in `ls | grep -E '^p[0-9]+$'`; do
+  cd $fi/$fi-student
+  make clean
+  cd ..
+  zip -r $fi-student.zip $fi-student
+  mv $fi-student.zip ../students/
+  cd ..
+done
